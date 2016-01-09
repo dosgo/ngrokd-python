@@ -17,8 +17,6 @@ SERVERDOMAIN = "16116.org"
 SERVERHTTP=90
 SERVERHTTPS=444
 SERVERPORT=4443
-ATOKEN=False
-
 
 
 
@@ -31,6 +29,7 @@ class NgrokdPython(object):
         self.SUBDOMAINS={}
         self.HOSTS={}
         self.Atokens = []
+        self.ATOKEN=False
 
 
 
