@@ -5,17 +5,19 @@ import sys
 import logging
 import subprocess
 import json
+import os
 import struct
 import random
 import select
 
 
 #config
+Ver="0.1-(2016-01-09)"
 SERVERDOMAIN = "16116.org"  
 SERVERHTTP=90
 SERVERHTTPS=444
 SERVERPORT=4443
-Ver="0.1-(2016-01-09)"
+ATOKEN=False
 
 
 
@@ -28,6 +30,7 @@ class NgrokdPython(object):
         self.reglist={}
         self.SUBDOMAINS={}
         self.HOSTS={}
+        self.Atokens = []
 
 
 
@@ -258,6 +261,19 @@ class NgrokdPython(object):
                                                 dict["Payload"]={};
                                                 dict["Payload"]["Version"]=js["Payload"]["Version"]
                                                 dict["Payload"]["MmVersion"]=js["Payload"]["MmVersion"]
+                                                #atokens error
+                                                if ATOKEN and js["Payload"]["User"] not  in self.Atokens:
+                                                    dict["Payload"]["Error"]="access denied"
+                                                    inputs[i].setblocking(0)
+                                                    inputs[i].setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 0)  
+                                                    self.sendpack(inputs[i],dict)
+                                                    inputs[i].setblocking(1)
+                                                    #inputs[i].shutdown(socket.SHUT_RDWR)
+                                                    #inputs[i].close()
+                                                    inputs.remove(inputs[i])
+                                                    continue
+
+
                                                 if js["Payload"]["ClientId"]=='':
                                                     js["Payload"]["ClientId"]=''.join(random.sample('zyxwvutsrqponmlkjihgfedcba',10))
                                                 dict["Payload"]["ClientId"]= js["Payload"]["ClientId"]
@@ -364,6 +380,13 @@ class NgrokdPython(object):
 
 
     def main_thread(self):
+    #read config
+        if os.path.exists('atoken'):
+            fd = file( "atoken", "r" )
+            for line in fd.readlines():
+                self.Atokens.append(line.strip('\n').strip('\r'))
+
+
     #start http
         self.httpt = threading.Thread(target = self.http_thread, args = () )
         self.httpt.start()
