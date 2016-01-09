@@ -15,6 +15,7 @@ SERVERDOMAIN = "16116.org"
 SERVERHTTP=90
 SERVERHTTPS=444
 SERVERPORT=4443
+Ver="0.1-(2016-01-09)"
 
 
 
@@ -26,7 +27,6 @@ class NgrokdPython(object):
         self.tcplist={} #tcp
         self.reglist={}
         self.SUBDOMAINS={}
-        self.TCPS={}
         self.HOSTS={}
 
 
@@ -51,6 +51,9 @@ class NgrokdPython(object):
             if back['Host'].find(':')!=-1:
                 DOMAIN=back['Host'][:back['Host'].find(':')]
                 back["DOMAIN"] =DOMAIN
+            if back['Host'].find(':')!=-1:
+                back["Host"] =back['Host'][:back['Host'].find(':')]
+
         return back
 
 
@@ -99,14 +102,12 @@ class NgrokdPython(object):
                             dict = {} 
                             dict["Type"]="ReqProxy"
                             dict["Payload"]={}
-                            print 'ReqProxy'
                             self.sendpack(csock,dict)
                             continue
                         if inputs[i]!=tcpsock:
                             try:
                                 data = inputs[i].recv(9216)
                                 if self.tcplist.has_key(inputs[i]):
-                                    print "new data1"
                                     self.tcplist[inputs[i]].send(data)
                                     continue
 
@@ -149,37 +150,32 @@ class NgrokdPython(object):
                         if inputs[i]==httpsock:
                             client,addr=httpsock.accept()
                             client.setblocking(1)
-                            print "new client"
                             inputs.append(client)
                             continue
                         if inputs[i]!=httpsock:
-                            print "new data"
                             try:
                                 data = inputs[i].recv(9216)
                                 heads=self.httphead(data)
                                 if  self.proxylist.has_key(inputs[i]):
-                                    print "new data1"
                                     self.proxylist[inputs[i]].send(data)
                                     continue
-                                if heads.has_key("SUBDOMAIN"):
-                                    print "new data2"
-                                    if self.SUBDOMAINS.has_key(heads['SUBDOMAIN']):
+                                if heads.has_key("Host"):
+                                    if self.HOSTS.has_key(heads['Host']):
                                         dict = {} 
                                         dict["Type"]="ReqProxy"
                                         dict["Payload"]={}
-                                        back=self.sendpack(self.SUBDOMAINS[heads['SUBDOMAIN']]['sock'],dict)
-                                        print "backlen:",back
-                                        if self.reglist.has_key(self.SUBDOMAINS[heads['SUBDOMAIN']]['clientid']):
-                                            regitem=self.reglist[self.SUBDOMAINS[heads['SUBDOMAIN']]['clientid']]
+                                        back=self.sendpack(self.HOSTS[heads['Host']]['sock'],dict)
+                                        if self.reglist.has_key(self.HOSTS[heads['Host']]['clientid']):
+                                            regitem=self.reglist[self.HOSTS[heads['Host']]['clientid']]
                                         else:
                                             regitem=[]
                                         reginfo={}
                                         reginfo['Protocol']=Protocol
-                                        reginfo['Subdomain']=heads['SUBDOMAIN']
+                                        reginfo['Host']=heads['Host']
                                         reginfo['rsock']= inputs[i]
                                         reginfo['buf']= data
                                         regitem.append(reginfo)
-                                        self.reglist[self.SUBDOMAINS[heads['SUBDOMAIN']]['clientid']]=regitem
+                                        self.reglist[self.HOSTS[heads['Host']]['clientid']]=regitem
                                     else:
                                         self.show404(inputs[i])
                                         inputs.remove(inputs[i])
@@ -222,7 +218,7 @@ class NgrokdPython(object):
         inputs=[sock]
         outputs=[]
         tosocklist={}
-        subdomainsock={}
+        hostsock={}
         while True:
                 try:
                     readable,writeable,exceptional = select.select(inputs,outputs,inputs)
@@ -279,17 +275,31 @@ class NgrokdPython(object):
                                                     dict["Payload"]={};
                                                     dict["Payload"]["ReqId"]=js["Payload"]["ReqId"]
                                                     dict["Payload"]["Protocol"]=js["Payload"]["Protocol"]
-                                                    if js["Payload"]["Subdomain"]=='':
-                                                        js["Payload"]["Subdomain"]=''.join(random.sample('zyxwvutsrqponmlkjihgfedcba',5))
-                                                    dict["Payload"]["Url"]=js["Payload"]["Protocol"]+"://"+js["Payload"]["Subdomain"]+'.'+SERVERDOMAIN
+
+                                                    if js["Payload"].has_key("Hostname") and len(js["Payload"]['Hostname'])>0:
+                                                        dict["Payload"]["Hostname"]=js["Payload"]['Hostname']
+                                                    else:
+                                                        if js["Payload"]["Subdomain"]=='':
+                                                            js["Payload"]["Subdomain"]=''.join(random.sample('zyxwvutsrqponmlkjihgfedcba',5))
+                                                        dict["Payload"]["Hostname"]=js["Payload"]["Subdomain"]+'.'+SERVERDOMAIN
+
+                                                        
+                                                    if js["Payload"]["Protocol"]=="http" and  SERVERHTTP!=80:
+                                                        dict["Payload"]["Url"]=js["Payload"]["Protocol"]+"://"+dict["Payload"]["Hostname"]+":"+str(SERVERHTTP)
+                                                    elif js["Payload"]["Protocol"]=="https" and  SERVERHTTPS!=443:
+                                                        dict["Payload"]["Url"]=js["Payload"]["Protocol"]+"://"+dict["Payload"]["Hostname"]+":"+str(SERVERHTTPS)
+                                                    else:
+                                                        dict["Payload"]["Url"]=js["Payload"]["Protocol"]+"://"+dict["Payload"]["Hostname"]
+                                                       
+                                                    
                                                     SUBDOMAININFO={}
                                                     SUBDOMAININFO["sock"]=inputs[i];
                                                     SUBDOMAININFO["clientid"]=ClientId;
                                                     dict["Payload"]["Error"]=""
-                                                    if self.SUBDOMAINS.has_key(js["Payload"]["Subdomain"]):
-                                                        dict["Payload"]["Error"]="The tunnel "+js["Payload"]["Protocol"]+"://"+js["Payload"]["Subdomain"]+"."+SERVERDOMAIN+" is already registered."
-                                                    self.SUBDOMAINS[js["Payload"]["Subdomain"]]=SUBDOMAININFO
-                                                    subdomainsock[inputs[i]]=js["Payload"]["Subdomain"]
+                                                    if self.HOSTS.has_key(dict["Payload"]["Hostname"]):
+                                                        dict["Payload"]["Error"]="The tunnel "+js["Payload"]["Protocol"]+"://"+dict["Payload"]["Hostname"]+" is already registered."
+                                                    self.HOSTS[dict["Payload"]["Hostname"]]=SUBDOMAININFO
+                                                    hostsock[inputs[i]]=dict["Payload"]["Hostname"]
                                                     self.sendpack(inputs[i],dict)
                                                 if js["Payload"]["Protocol"]=="tcp":
                                                     tcpt = threading.Thread(target = self.tcp_server, args = (inputs[i],js["Payload"]["RemotePort"],js["Payload"]["ReqId"],ClientId))
@@ -307,14 +317,13 @@ class NgrokdPython(object):
                                                             dict = {} 
                                                             dict["Type"]="StartProxy";
                                                             dict["Payload"]={};
-                                                            dict["Payload"]['Url']=linkinfo['Protocol']+'://'+linkinfo['Subdomain']+SERVERDOMAIN
+                                                            dict["Payload"]['Url']=linkinfo['Protocol']+'://'+linkinfo['Host']
                                                             dict['Payload']['ClientAddr']=str(sockinfo[0])+':'+str(sockinfo[1]);#ip +port
                                                             self.sendpack(inputs[i],dict)
                                                             inputs[i].send(linkinfo['buf'])
                                                             self.proxylist[tosock]=inputs[i]
 
                                                         if linkinfo['Protocol']=='tcp':
-                                                            print "tcpRegProxy"
                                                             tosock=linkinfo['rsock']
                                                             tosocklist[inputs[i]]=tosock
                                                             sockinfo=tosock.getpeername();
@@ -326,13 +335,12 @@ class NgrokdPython(object):
                                                             self.sendpack(inputs[i],dict)
                                                             inputs[i].send(linkinfo['buf'])
                                                             self.tcplist[tosock]=inputs[i]
-                                                            print "tcpRegProxy1"
 
 
                     except socket.error,e:
-                        if  subdomainsock.has_key(inputs[i]):
-                            if self.SUBDOMAINS.has_key(subdomainsock[inputs[i]]):
-                                self.SUBDOMAINS.pop(subdomainsock[inputs[i]])
+                        if  hostsock.has_key(inputs[i]):
+                            if self.HOSTS.has_key(hostsock[inputs[i]]):
+                                self.HOSTS.pop(hostsock[inputs[i]])
                                 continue
                         try:
                             inputs[i].shutdown(socket.SHUT_RDWR)
@@ -379,6 +387,7 @@ class NgrokdPython(object):
 
 
 def run():
+    print "ngrokd-python v"+str(Ver)+"\r\n"
     ngrokdpy = NgrokdPython()
     ngrokdpy.main_thread()
 
