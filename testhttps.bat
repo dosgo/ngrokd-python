@@ -1,0 +1,1 @@
+ngrokc -SER[Shost:127.0.0.1,Sport:4443] -AddTun[Type:https,Lhost:127.0.0.1,Lport:80,Sdname:test2]
