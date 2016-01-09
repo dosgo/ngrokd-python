@@ -261,7 +261,7 @@ class NgrokdPython(object):
                                                 dict["Payload"]["Version"]=js["Payload"]["Version"]
                                                 dict["Payload"]["MmVersion"]=js["Payload"]["MmVersion"]
                                                 #atokens error
-                                                if ATOKEN and js["Payload"]["User"] not  in self.Atokens:
+                                                if self.ATOKEN and js["Payload"]["User"] not  in self.Atokens:
                                                     dict["Payload"]["Error"]="access denied"
                                                     inputs[i].setblocking(0)
                                                     inputs[i].setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 0)  
