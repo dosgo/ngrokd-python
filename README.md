@@ -1,7 +1,7 @@
 # ngrokd-python
 python ngrok server
 
-目前只支持http or https 不支持tcp
+目前支持tcp http  https
 
 #使用方法
 python ngrokd.py
