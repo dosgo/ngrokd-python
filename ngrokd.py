@@ -12,7 +12,7 @@ import select
 
 
 #config
-Ver="0.1-(2016-01-09)"
+Ver="0.2-(2016-01-12)"
 SERVERDOMAIN = "16116.org"  
 SERVERHTTP=90
 SERVERHTTPS=444
@@ -28,8 +28,12 @@ class NgrokdPython(object):
         self.reglist={}
         self.SUBDOMAINS={}
         self.HOSTS={}
+        self.TCPS={}
         self.Atokens = []
         self.ATOKEN=False
+        self.tcpsocks=[]
+        self.tcpsockinfos={}
+        self.ClientIds={}
 
 
 
@@ -59,78 +63,67 @@ class NgrokdPython(object):
         return back
 
 
-    def tcp_server(self,csock,PORT,ReqId,ClientId):
-        bind=True
-        dict={}
-        dict["Payload"]={}
-        dict["Payload"]["Error"]=""
-        try:
-            tcpsock =socket.socket()
-            tcpsock.bind( ('0.0.0.0', int(PORT)) )
-            tcpsock.listen(500)
-            inputs=[tcpsock]
-            outputs=[]
-            sockinfo=tcpsock.getsockname();
-            tcpsock.setblocking(1)
-        except Exception,e:
-            dict["Payload"]["Error"]="Bind error"
-            print e
-            bind=False
+    def tcp_server(self):
 
-        dict["Type"]="NewTunnel";
-        dict["Payload"]["ReqId"]=ReqId
-        dict["Payload"]["Protocol"]='tcp'
-        if bind==True:
-            dict["Payload"]["Url"]="tcp://"+SERVERDOMAIN+':'+str(sockinfo[1])
-        self.sendpack(csock,dict)
-        if bind==False:
-            return False
-
+        outputs=[]
         while True:
             #try:
-            readable,writeable,exceptional = select.select(inputs,outputs,inputs)
-            if len(readable)>0:
-                for i in range(0,len(inputs)):
-                    #good 
-                    if(i>len(inputs)-1):
-                        break;
+            if len(self.tcpsocks)>0:
+                readable,writeable,exceptional = select.select(self.tcpsocks,outputs,[])
+                if len(readable)>0:
+                    for i in range(0,len(self.tcpsocks)):
+                        #good 
+                        if(i>len(self.tcpsocks)-1):
+                            break;
 
-                    if inputs[i] in readable:
-                        #new connect
-                        if inputs[i]==tcpsock:
-                            client,addr=tcpsock.accept()
-                            client.setblocking(1)
-                            inputs.append(client)
-                            dict = {} 
-                            dict["Type"]="ReqProxy"
-                            dict["Payload"]={}
-                            self.sendpack(csock,dict)
-                            continue
-                        if inputs[i]!=tcpsock:
-                            try:
-                                data = inputs[i].recv(9216)
-                                if self.tcplist.has_key(inputs[i]):
-                                    self.tcplist[inputs[i]].send(data)
-                                    continue
+                        if self.tcpsocks[i] in readable:
+                            #new connect
+                            if  self.TCPS.has_key(self.tcpsocks[i]):
+                                ClientId=self.TCPS[self.tcpsocks[i]]['ClientId']
+                                PORT=self.TCPS[self.tcpsocks[i]]['RemotePort']
+                                Csock=self.TCPS[self.tcpsocks[i]]['Csock']
+                                client,addr=self.tcpsocks[i].accept()
+                                client.setblocking(1)
+                                sockinfo={}
+                                sockinfo['ClientId']=ClientId
+                                sockinfo['PORT']=PORT
+                                self.tcpsockinfos[client]=sockinfo
+                                self.tcpsocks.append(client)
+                                dict = {} 
+                                dict["Type"]="ReqProxy"
+                                dict["Payload"]={}
+                                self.sendpack(Csock,dict)
+                                continue
+                            else:
+                                try:
+                                    data = self.tcpsocks[i].recv(9216)
+                                    if self.tcplist.has_key(self.tcpsocks[i]):
+                                        self.tcplist[self.tcpsocks[i]].send(data)
+                                        continue
 
-                                if self.reglist.has_key(ClientId):
-                                    regitem=self.reglist[ClientId]
-                                else:
-                                    regitem=[]
-                                reginfo={}
-                                reginfo['Protocol']='tcp'
-                                reginfo['Subdomain']=''
-                                reginfo['rsock']= inputs[i]
-                                reginfo['rport']=PORT
-                                reginfo['buf']= data
-                                regitem.append(reginfo)
-                                self.reglist[ClientId]=regitem
-                            except Exception,e:
-                                print("error\r\n");
-                                if e.errno!=9:
-                                    inputs[i].shutdown(socket.SHUT_RDWR)
-                                    inputs[i].close()
-                                inputs.remove(inputs[i])
+                                    if self.tcpsockinfos.has_key(self.tcpsocks[i]):
+                                        ClientId=self.tcpsockinfos[self.tcpsocks[i]]['ClientId']
+                                        PORT=self.tcpsockinfos[self.tcpsocks[i]]['PORT']
+
+                                    if self.reglist.has_key(ClientId):
+                                        regitem=self.reglist[ClientId]
+                                    else:
+                                        regitem=[]
+                                    reginfo={}
+                                    reginfo['Protocol']='tcp'
+                                    reginfo['Subdomain']=''
+                                    reginfo['rsock']= self.tcpsocks[i]
+                                    reginfo['rport']=PORT
+                                    reginfo['buf']= data
+                                    regitem.append(reginfo)
+                                    self.reglist[ClientId]=regitem
+                                except Exception,e:
+                                    print("error\r\n");
+                                    print e
+                                    if e.errno!=9:
+                                        self.tcpsocks[i].shutdown(socket.SHUT_RDWR)
+                                        self.tcpsocks[i].close()
+                                    self.tcpsocks.remove(self.tcpsocks[i])
 
 
 
@@ -277,6 +270,7 @@ class NgrokdPython(object):
                                                     js["Payload"]["ClientId"]=''.join(random.sample('zyxwvutsrqponmlkjihgfedcba',10))
                                                 dict["Payload"]["ClientId"]= js["Payload"]["ClientId"]
                                                 ClientId=dict["Payload"]["ClientId"]
+                                                self.ClientIds[inputs[i]]=ClientId
                                                 dict["Payload"]["Error"]=""
                                                 self.sendpack(inputs[i],dict)
                                             if js["Type"]=="Ping":
@@ -309,7 +303,8 @@ class NgrokdPython(object):
                                                     
                                                     SUBDOMAININFO={}
                                                     SUBDOMAININFO["sock"]=inputs[i];
-                                                    SUBDOMAININFO["clientid"]=ClientId;
+                                                    if self.ClientIds.has_key(inputs[i]):
+                                                        SUBDOMAININFO["clientid"]=self.ClientIds[inputs[i]];
                                                     dict["Payload"]["Error"]=""
                                                     if self.HOSTS.has_key(dict["Payload"]["Hostname"]):
                                                         dict["Payload"]["Error"]="The tunnel "+js["Payload"]["Protocol"]+"://"+dict["Payload"]["Hostname"]+" is already registered."
@@ -317,8 +312,31 @@ class NgrokdPython(object):
                                                     hostsock[inputs[i]]=dict["Payload"]["Hostname"]
                                                     self.sendpack(inputs[i],dict)
                                                 if js["Payload"]["Protocol"]=="tcp":
-                                                    tcpt = threading.Thread(target = self.tcp_server, args = (inputs[i],js["Payload"]["RemotePort"],js["Payload"]["ReqId"],ClientId))
-                                                    tcpt.start()
+                                                    dict={}
+                                                    dict["Payload"]={}
+                                                    dict["Payload"]["Error"]=""
+                                                    try:
+                                                        tcpsock =socket.socket()
+                                                        tcpsock.bind( ('0.0.0.0', int(js["Payload"]["RemotePort"])) )
+                                                        tcpsock.listen(500)
+                                                        self.tcpsocks.append(tcpsock);
+                                                        sockinfo=tcpsock.getsockname();
+                                                        tcpsock.setblocking(1)
+                                                        dict["Payload"]["Url"]="tcp://"+SERVERDOMAIN+':'+str(sockinfo[1])
+                                                    except Exception,e:
+                                                        dict["Payload"]["Error"]="Bind error"
+                                                    dict["Type"]="NewTunnel";
+                                                    dict["Payload"]["ReqId"]=js["Payload"]["ReqId"]
+                                                    dict["Payload"]["Protocol"]='tcp'
+                                                    self.sendpack(inputs[i],dict)
+                                                    TCPINFO={}
+                                                    TCPINFO['Csock']=inputs[i];
+                                                    TCPINFO['RemotePort']=js["Payload"]["RemotePort"]
+                                                    if self.ClientIds.has_key(inputs[i]):
+                                                        TCPINFO['ClientId']=self.ClientIds[inputs[i]];
+                                                    self.TCPS[tcpsock]=TCPINFO;
+
+
 
 
                                             if  js["Type"]=="RegProxy":
@@ -393,6 +411,9 @@ class NgrokdPython(object):
     #start https
         self.httpst = threading.Thread(target = self.https_thread, args = () )
         self.httpst.start()
+    #tcp server
+        self.tcpt = threading.Thread(target = self.tcp_server, args = ())
+        self.tcpt.start()
 
     #start server
         self.servert = threading.Thread(target = self.server_thread, args = () )
