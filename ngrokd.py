@@ -84,6 +84,7 @@ class NgrokdPython(object):
                                 Csock=self.TCPS[self.tcpsocks[i]]['Csock']
                                 client,addr=self.tcpsocks[i].accept()
                                 client.setblocking(1)
+                                client.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 0)  
                                 sockinfo={}
                                 sockinfo['ClientId']=ClientId
                                 sockinfo['PORT']=PORT
@@ -145,6 +146,7 @@ class NgrokdPython(object):
                         if inputs[i]==httpsock:
                             client,addr=httpsock.accept()
                             client.setblocking(1)
+                            client.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 0)  
                             inputs.append(client)
                             continue
                         if inputs[i]!=httpsock:
@@ -196,6 +198,7 @@ class NgrokdPython(object):
         httpsock.bind( ('0.0.0.0', SERVERHTTPS) )
         httpsock.listen(500)
         httpsock.setblocking(1)
+        httpsock.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 0)  
         self.http_server(httpsock,'https')
 
     def http_thread(self):
@@ -203,6 +206,7 @@ class NgrokdPython(object):
         httpsock.bind( ('0.0.0.0', SERVERHTTP) )
         httpsock.listen(500)
         httpsock.setblocking(1)
+        httpsock.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 0)  
         self.http_server(httpsock,'http')
 
     def server_thread(self):
@@ -210,6 +214,7 @@ class NgrokdPython(object):
         sock.bind( ('0.0.0.0', SERVERPORT) )
         sock.listen(100)
         sock.setblocking(1)
+        sock.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 0)  
         inputs=[sock]
         outputs=[]
         tosocklist={}
@@ -322,6 +327,7 @@ class NgrokdPython(object):
                                                         self.tcpsocks.append(tcpsock);
                                                         sockinfo=tcpsock.getsockname();
                                                         tcpsock.setblocking(1)
+                                                        tcpsock.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 0)  
                                                         dict["Payload"]["Url"]="tcp://"+SERVERDOMAIN+':'+str(sockinfo[1])
                                                     except Exception,e:
                                                         dict["Payload"]["Error"]="Bind error"
