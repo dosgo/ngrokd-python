@@ -452,9 +452,9 @@ class NgrokdPython(object):
 
 
     def send(self,client,buf):
-        client.setblocking(1)
-        sendlen=client.send(buf);
         client.setblocking(0)
+        sendlen=client.send(buf);
+        client.setblocking(1)
         return sendlen
 
     def sendpack(self,client,dict):
