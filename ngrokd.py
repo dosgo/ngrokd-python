@@ -171,6 +171,7 @@ class NgrokdPython(object):
                                 if heads.has_key("Host"):
                                     print("ddd\r\n");
                                     if self.HOSTS.has_key(heads['Host']):
+                                        print("ddd10\r\n");
                                         dict = {} 
                                         dict["Type"]="ReqProxy"
                                         dict["Payload"]={}
@@ -179,6 +180,7 @@ class NgrokdPython(object):
                                             regitem=self.reglist[self.HOSTS[heads['Host']]['clientid']]
                                         else:
                                             regitem=[]
+                                        print("ddd11\r\n");
                                         reginfo={}
                                         reginfo['Protocol']=Protocol
                                         reginfo['Host']=heads['Host']
@@ -186,6 +188,7 @@ class NgrokdPython(object):
                                         reginfo['buf']= data
                                         regitem.append(reginfo)
                                         self.reglist[self.HOSTS[heads['Host']]['clientid']]=regitem
+                                        print("ddd12\r\n");
                                     else:
                                         self.show404(inputs[i])
                                         inputs.remove(inputs[i])
@@ -403,7 +406,7 @@ class NgrokdPython(object):
                         try:
                             inputs[i].shutdown(socket.SHUT_RDWR)
                         except socket.error:
-                            print "ddd"
+                            print "ddd3"
                         if inputs[i] !=sock:
                             inputs.remove(inputs[i])
                         
