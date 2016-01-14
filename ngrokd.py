@@ -454,12 +454,12 @@ class NgrokdPython(object):
         return sendlen
 
     def sendpack(self,client,dict):
-        client.setblocking(1)
+        client.setblocking(0)
         jsonstr=json.dumps(dict)
         len1=struct.pack("i",len(jsonstr))
         len2=struct.pack("i",0)
         sendlen=client.send(len1+len2+jsonstr);
-        client.setblocking(0)
+        client.setblocking(1)
         return sendlen
 
 
