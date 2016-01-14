@@ -217,7 +217,7 @@ class NgrokdPython(object):
         httpsock.setsockopt( socket.SOL_SOCKET, socket.SO_REUSEADDR, 1 )
         httpsock.bind( ('0.0.0.0', SERVERHTTPS) )
         httpsock.listen(500)
-        httpsock.setblocking(1)
+        #httpsock.setblocking(1)
         httpsock.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 1)  
         self.http_server(httpsock,'https')
 
@@ -235,7 +235,7 @@ class NgrokdPython(object):
         sock.setsockopt( socket.SOL_SOCKET, socket.SO_REUSEADDR, 1 )
         sock.bind( ('0.0.0.0', SERVERPORT) )
         sock.listen(100)
-        sock.setblocking(1)
+        #sock.setblocking(1)
         sock.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 1)  
         inputs=[sock]
         outputs=[]
