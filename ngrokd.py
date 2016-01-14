@@ -89,7 +89,7 @@ class NgrokdPython(object):
                                 PORT=self.TCPS[self.tcpsocks[i]]['RemotePort']
                                 Csock=self.TCPS[self.tcpsocks[i]]['Csock']
                                 client,addr=self.tcpsocks[i].accept()
-                                client.setblocking(1)
+                                client.setblocking(0)
                                 client.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 0)  
                                 sockinfo={}
                                 sockinfo['ClientId']=ClientId
@@ -105,9 +105,7 @@ class NgrokdPython(object):
                                 try:
                                     data = self.tcpsocks[i].recv(9216)
                                     if self.tcplist.has_key(self.tcpsocks[i]):
-                                        self.tcplist[self.tcpsocks[i]].setblocking(0)
-                                        self.tcplist[self.tcpsocks[i]].send(data)
-                                        self.tcplist[self.tcpsocks[i]].setblocking(1)
+                                        self.send(self.tcplist[self.tcpsocks[i]],data)
                                         continue
 
                                     if self.tcpsockinfos.has_key(self.tcpsocks[i]):
@@ -154,7 +152,7 @@ class NgrokdPython(object):
                             client,addr=httpsock.accept()
                             print("http new sock\r\n")
                             try:
-                                client.setblocking(1)
+                                client.setblocking(0)
                                 client.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 0)  
                             except Exception,e:
                                 print("error5")
@@ -168,9 +166,7 @@ class NgrokdPython(object):
                                 heads=self.httphead(data)
                                 if  self.proxylist.has_key(inputs[i]):
                                     print("ddd1\r\n");
-                                    self.proxylist[inputs[i]].setblocking(0)
-                                    self.proxylist[inputs[i]].send(data)
-                                    self.proxylist[inputs[i]].setblocking(1)
+                                    self.send(self.proxylist[inputs[i]],data);
                                     continue
                                 if heads.has_key("Host"):
                                     print("ddd\r\n");
@@ -219,7 +215,7 @@ class NgrokdPython(object):
         httpsock.setsockopt( socket.SOL_SOCKET, socket.SO_REUSEADDR, 1 )
         httpsock.bind( ('0.0.0.0', SERVERHTTPS) )
         httpsock.listen(500)
-        httpsock.setblocking(1)
+        httpsock.setblocking(0)
         httpsock.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 0)  
         self.http_server(httpsock,'https')
 
@@ -228,7 +224,7 @@ class NgrokdPython(object):
         httpsock.setsockopt( socket.SOL_SOCKET, socket.SO_REUSEADDR, 1 )
         httpsock.bind( ('0.0.0.0', SERVERHTTP) )
         httpsock.listen(500)
-        httpsock.setblocking(1)
+        httpsock.setblocking(0)
         httpsock.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 0)  
         self.http_server(httpsock,'http')
 
@@ -237,7 +233,7 @@ class NgrokdPython(object):
         sock.setsockopt( socket.SOL_SOCKET, socket.SO_REUSEADDR, 1 )
         sock.bind( ('0.0.0.0', SERVERPORT) )
         sock.listen(100)
-        sock.setblocking(1)
+        sock.setblocking(0)
         sock.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 0)  
         inputs=[sock]
         outputs=[]
@@ -258,16 +254,14 @@ class NgrokdPython(object):
                                 #new connect
                                 if inputs[i]==sock:
                                     client,addr=sock.accept()
-                                    client.setblocking(1)
+                                    client.setblocking(0)
                                     inputs.append(client)
                                     continue
                                 if inputs[i]!=sock:
                                     data = inputs[i].recv(4096)
                                     #print(data)
                                     if  tosocklist.has_key(inputs[i])  and  len(data)>0:
-                                        tosocklist[inputs[i]].setblocking(0)
-                                        tosocklist[inputs[i]].send(data)
-                                        tosocklist[inputs[i]].setblocking(1)
+                                        self.send(tosocklist[inputs[i]],data);
                                         continue
 
                                    
@@ -288,10 +282,8 @@ class NgrokdPython(object):
                                                 #atokens error
                                                 if self.ATOKEN and js["Payload"]["User"] not  in self.Atokens:
                                                     dict["Payload"]["Error"]="access denied"
-                                                    inputs[i].setblocking(0)
                                                     inputs[i].setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 0)  
                                                     self.sendpack(inputs[i],dict)
-                                                    inputs[i].setblocking(1)
                                                     #inputs[i].shutdown(socket.SHUT_RDWR)
                                                     #inputs[i].close()
                                                     inputs.remove(inputs[i])
@@ -353,7 +345,7 @@ class NgrokdPython(object):
                                                         tcpsock.listen(500)
                                                         self.tcpsocks.append(tcpsock);
                                                         sockinfo=tcpsock.getsockname();
-                                                        tcpsock.setblocking(1)
+                                                        tcpsock.setblocking(0)
                                                         tcpsock.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 0)  
                                                         dict["Payload"]["Url"]="tcp://"+SERVERDOMAIN+':'+str(sockinfo[1])
                                                     except Exception,e:
@@ -386,9 +378,7 @@ class NgrokdPython(object):
                                                             dict["Payload"]['Url']=linkinfo['Protocol']+'://'+linkinfo['Host']
                                                             dict['Payload']['ClientAddr']=str(sockinfo[0])+':'+str(sockinfo[1]);#ip +port
                                                             self.sendpack(inputs[i],dict)
-                                                            inputs[i].setblocking(0)
-                                                            inputs[i].send(linkinfo['buf'])
-                                                            inputs[i].setblocking(1)
+                                                            self.send(inputs[i],linkinfo['buf'])
                                                             self.proxylist[tosock]=inputs[i]
 
                                                         if linkinfo['Protocol']=='tcp':
@@ -401,9 +391,7 @@ class NgrokdPython(object):
                                                             dict["Payload"]['Url']=linkinfo['Protocol']+'://'+SERVERDOMAIN+':'+str(linkinfo['rport'])
                                                             dict['Payload']['ClientAddr']=str(sockinfo[0])+':'+str(sockinfo[1]);#ip +port
                                                             self.sendpack(inputs[i],dict)
-                                                            inputs[i].setblocking(0)
-                                                            inputs[i].send(linkinfo['buf'])
-                                                            inputs[i].setblocking(1)
+                                                            self.send(inputs[i],linkinfo['buf'])
                                                             self.tcplist[tosock]=inputs[i]
 
 
@@ -429,7 +417,7 @@ class NgrokdPython(object):
     def show404(self,sock):
         body = 'Tunnel not found.'
         request = 'HTTP/1.0 404  '+"\r\n"+' 404 Not Found.' + "\r\n" + 'Content-Length: ' + chr(len(body)) +"\r\n\r\n" + body
-        sock.setblocking(0)
+        sock.setblocking(1)
         sock.send(request)
         sock.shutdown(socket.SHUT_RDWR)
         sock.close()
@@ -459,14 +447,19 @@ class NgrokdPython(object):
         self.servert.start()
 
 
+    def send(self,client,buf):
+        client.setblocking(1)
+        sendlen=client.send(buf);
+        client.setblocking(0)
+        return sendlen
 
     def sendpack(self,client,dict):
-        client.setblocking(0)
+        client.setblocking(1)
         jsonstr=json.dumps(dict)
         len1=struct.pack("i",len(jsonstr))
         len2=struct.pack("i",0)
         sendlen=client.send(len1+len2+jsonstr);
-        client.setblocking(1)
+        client.setblocking(0)
         return sendlen
 
 
