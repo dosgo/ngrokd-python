@@ -261,7 +261,7 @@ class NgrokdPython(object):
                                     if not data:
                                         if tosocklist.has_key(inputs[i]):
                                             tosocklist[inputs[i]].shutdown(socket.SHUT_RDWR)
-                                            tosocklist.remove(tosocklist[inputs[i]])
+                                            tosocklist.pop(inputs[i])
                                     if len(data)>=4:                                   
                                         lenbyte=struct.unpack("i", data[0:4])
                                         if len(data)==(lenbyte[0]+8):
