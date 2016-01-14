@@ -89,8 +89,8 @@ class NgrokdPython(object):
                                 PORT=self.TCPS[self.tcpsocks[i]]['RemotePort']
                                 Csock=self.TCPS[self.tcpsocks[i]]['Csock']
                                 client,addr=self.tcpsocks[i].accept()
-                                client.setblocking(0)
-                                client.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 0)  
+                                client.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 0)
+                                client.setblocking(1)
                                 sockinfo={}
                                 sockinfo['ClientId']=ClientId
                                 sockinfo['PORT']=PORT
@@ -152,8 +152,9 @@ class NgrokdPython(object):
                             client,addr=httpsock.accept()
                             print("http new sock\r\n")
                             try:
-                                client.setblocking(0)
-                                client.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 0)  
+                                
+                                client.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 0) 
+                                client.setblocking(1) 
                             except Exception,e:
                                 print("error5")
                                 print e
@@ -254,7 +255,7 @@ class NgrokdPython(object):
                                 #new connect
                                 if inputs[i]==sock:
                                     client,addr=sock.accept()
-                                    client.setblocking(0)
+                                    client.setblocking(1)
                                     inputs.append(client)
                                     continue
                                 if inputs[i]!=sock:
