@@ -177,6 +177,7 @@ class NgrokdPython(object):
                                         dict["Type"]="ReqProxy"
                                         dict["Payload"]={}
                                         back=self.sendpack(self.HOSTS[heads['Host']]['sock'],dict)
+                                        print "back",back,"\r\n"
                                         if self.reglist.has_key(self.HOSTS[heads['Host']]['clientid']):
                                             regitem=self.reglist[self.HOSTS[heads['Host']]['clientid']]
                                         else:
@@ -346,8 +347,8 @@ class NgrokdPython(object):
                                                         tcpsock.listen(500)
                                                         self.tcpsocks.append(tcpsock);
                                                         sockinfo=tcpsock.getsockname();
-                                                        tcpsock.setblocking(1)
                                                         tcpsock.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 0)  
+                                                        tcpsock.setblocking(1)
                                                         dict["Payload"]["Url"]="tcp://"+SERVERDOMAIN+':'+str(sockinfo[1])
                                                     except Exception,e:
                                                         dict["Payload"]["Error"]="Bind error"
