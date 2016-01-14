@@ -302,6 +302,7 @@ class NgrokdPython(object):
                                             if js["Type"]=="Ping":
                                                 dict = {} 
                                                 dict["Type"]="Pong";
+                                                print("pong \r\n")
                                                 self.sendpack(inputs[i],dict)
                                             if js["Type"]=="ReqTunnel":
                                                 if js["Payload"]["Protocol"]=="http" or js["Payload"]["Protocol"]=="https":
@@ -449,7 +450,7 @@ class NgrokdPython(object):
         self.tcpt.start()
 
     #start server
-        self.servert = threading.Thread(target = self.server_thread, args = () )
+        self.servert = threading.Thread(target = self.server_thread, args = ())
         self.servert.start()
 
 
