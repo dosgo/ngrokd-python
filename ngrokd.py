@@ -215,7 +215,7 @@ class NgrokdPython(object):
         httpsock.setsockopt( socket.SOL_SOCKET, socket.SO_REUSEADDR, 1 )
         httpsock.bind( ('0.0.0.0', SERVERHTTPS) )
         httpsock.listen(500)
-        httpsock.setblocking(0)
+        httpsock.setblocking(1)
         httpsock.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 0)  
         self.http_server(httpsock,'https')
 
@@ -224,7 +224,7 @@ class NgrokdPython(object):
         httpsock.setsockopt( socket.SOL_SOCKET, socket.SO_REUSEADDR, 1 )
         httpsock.bind( ('0.0.0.0', SERVERHTTP) )
         httpsock.listen(500)
-        httpsock.setblocking(0)
+        httpsock.setblocking(1)
         httpsock.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 0)  
         self.http_server(httpsock,'http')
 
@@ -233,7 +233,7 @@ class NgrokdPython(object):
         sock.setsockopt( socket.SOL_SOCKET, socket.SO_REUSEADDR, 1 )
         sock.bind( ('0.0.0.0', SERVERPORT) )
         sock.listen(100)
-        sock.setblocking(0)
+        sock.setblocking(1)
         sock.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 0)  
         inputs=[sock]
         outputs=[]
@@ -345,7 +345,7 @@ class NgrokdPython(object):
                                                         tcpsock.listen(500)
                                                         self.tcpsocks.append(tcpsock);
                                                         sockinfo=tcpsock.getsockname();
-                                                        tcpsock.setblocking(0)
+                                                        tcpsock.setblocking(1)
                                                         tcpsock.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 0)  
                                                         dict["Payload"]["Url"]="tcp://"+SERVERDOMAIN+':'+str(sockinfo[1])
                                                     except Exception,e:
