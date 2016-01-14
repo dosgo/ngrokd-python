@@ -165,9 +165,11 @@ class NgrokdPython(object):
                                 print (data)
                                 heads=self.httphead(data)
                                 if  self.proxylist.has_key(inputs[i]):
+                                    print("ddd1\r\n");
                                     self.proxylist[inputs[i]].send(data)
                                     continue
                                 if heads.has_key("Host"):
+                                    print("ddd\r\n");
                                     if self.HOSTS.has_key(heads['Host']):
                                         dict = {} 
                                         dict["Type"]="ReqProxy"
