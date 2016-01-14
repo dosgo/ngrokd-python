@@ -89,7 +89,7 @@ class NgrokdPython(object):
                                 PORT=self.TCPS[self.tcpsocks[i]]['RemotePort']
                                 Csock=self.TCPS[self.tcpsocks[i]]['Csock']
                                 client,addr=self.tcpsocks[i].accept()
-                                client.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 0)
+                                client.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 1)
                                 client.setblocking(1)
                                 sockinfo={}
                                 sockinfo['ClientId']=ClientId
@@ -153,7 +153,7 @@ class NgrokdPython(object):
                             print("http new sock\r\n")
                             try:
                                 
-                                client.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 0) 
+                                client.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 1) 
                                 client.setblocking(1) 
                             except Exception,e:
                                 print("error5")
@@ -218,7 +218,7 @@ class NgrokdPython(object):
         httpsock.bind( ('0.0.0.0', SERVERHTTPS) )
         httpsock.listen(500)
         httpsock.setblocking(1)
-        httpsock.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 0)  
+        httpsock.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 1)  
         self.http_server(httpsock,'https')
 
     def http_thread(self):
@@ -227,7 +227,7 @@ class NgrokdPython(object):
         httpsock.bind( ('0.0.0.0', SERVERHTTP) )
         httpsock.listen(500)
         httpsock.setblocking(1)
-        httpsock.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 0)  
+        httpsock.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 1)  
         self.http_server(httpsock,'http')
 
     def server_thread(self):
@@ -236,7 +236,7 @@ class NgrokdPython(object):
         sock.bind( ('0.0.0.0', SERVERPORT) )
         sock.listen(100)
         sock.setblocking(1)
-        sock.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 0)  
+        sock.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 1)  
         inputs=[sock]
         outputs=[]
         tosocklist={}
@@ -284,7 +284,6 @@ class NgrokdPython(object):
                                                 #atokens error
                                                 if self.ATOKEN and js["Payload"]["User"] not  in self.Atokens:
                                                     dict["Payload"]["Error"]="access denied"
-                                                    inputs[i].setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 0)  
                                                     self.sendpack(inputs[i],dict)
                                                     #inputs[i].shutdown(socket.SHUT_RDWR)
                                                     #inputs[i].close()
@@ -348,7 +347,7 @@ class NgrokdPython(object):
                                                         tcpsock.listen(500)
                                                         self.tcpsocks.append(tcpsock);
                                                         sockinfo=tcpsock.getsockname();
-                                                        tcpsock.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 0)  
+                                                        tcpsock.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 1)  
                                                         tcpsock.setblocking(1)
                                                         dict["Payload"]["Url"]="tcp://"+SERVERDOMAIN+':'+str(sockinfo[1])
                                                     except Exception,e:
