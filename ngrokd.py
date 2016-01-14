@@ -150,6 +150,7 @@ class NgrokdPython(object):
                             #new connect
                             if inputs[i]==httpsock:
                                 client,addr=httpsock.accept()
+                                print("http new sock\r\n")
                                 try:
                                     client.setblocking(1)
                                     client.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 0)  
