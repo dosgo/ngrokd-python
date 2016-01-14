@@ -377,9 +377,13 @@ class NgrokdPython(object):
                                                             dict["Payload"]={};
                                                             dict["Payload"]['Url']=linkinfo['Protocol']+'://'+linkinfo['Host']
                                                             dict['Payload']['ClientAddr']=str(sockinfo[0])+':'+str(sockinfo[1]);#ip +port
+                                                            print("RegProxy")
                                                             self.sendpack(inputs[i],dict)
+                                                            print("RegProxy1")
                                                             self.send(inputs[i],linkinfo['buf'])
+                                                            print("RegProxy3")
                                                             self.proxylist[tosock]=inputs[i]
+                                                            print("RegProxy4")
 
                                                         if linkinfo['Protocol']=='tcp':
                                                             tosock=linkinfo['rsock']
