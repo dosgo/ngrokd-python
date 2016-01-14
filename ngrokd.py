@@ -397,10 +397,10 @@ class NgrokdPython(object):
                                 self.HOSTS.pop(hostsock[inputs[i]])
                         try:
                             inputs[i].shutdown(socket.SHUT_RDWR)
-                            inputs.remove(inputs[i])
                         except socket.error:
                             print "ddd"
-                        inputs.remove(inputs[i])
+                        if inputs[i] !=sock:
+                            inputs.remove(inputs[i])
                         
 
 
