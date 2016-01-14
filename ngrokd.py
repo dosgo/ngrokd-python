@@ -14,7 +14,7 @@ import time
 
 #config
 Ver="0.3-(2016-01-14)"
-SERVERDOMAIN = "16116.org"  
+SERVERDOMAIN = "tunnel.16116.org"  
 SERVERHTTP=90
 SERVERHTTPS=444
 SERVERPORT=4443
@@ -205,6 +205,7 @@ class NgrokdPython(object):
             
     def https_thread(self):
         httpsock = ssl.wrap_socket(socket.socket(),keyfile,certfile,  True)
+        httpsock.setsockopt( socket.SOL_SOCKET, socket.SO_REUSEADDR, 1 )
         httpsock.bind( ('0.0.0.0', SERVERHTTPS) )
         httpsock.listen(500)
         httpsock.setblocking(1)
@@ -213,6 +214,7 @@ class NgrokdPython(object):
 
     def http_thread(self):
         httpsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        httpsock.setsockopt( socket.SOL_SOCKET, socket.SO_REUSEADDR, 1 )
         httpsock.bind( ('0.0.0.0', SERVERHTTP) )
         httpsock.listen(500)
         httpsock.setblocking(1)
@@ -221,6 +223,7 @@ class NgrokdPython(object):
 
     def server_thread(self):
         sock = ssl.wrap_socket(socket.socket(),keyfile,certfile,server_side=True,cert_reqs=ssl.CERT_NONE)
+        sock.setsockopt( socket.SOL_SOCKET, socket.SO_REUSEADDR, 1 )
         sock.bind( ('0.0.0.0', SERVERPORT) )
         sock.listen(100)
         sock.setblocking(1)
