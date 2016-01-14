@@ -138,66 +138,65 @@ class NgrokdPython(object):
         inputs=[httpsock]
         outputs=[]
         while True:
-            #try:
-            readable,writeable,exceptional = select.select(inputs,outputs,inputs)
-            print(len(inputs))
-            if len(readable)>0:
-                for i in range(0,len(inputs)):
-                    #good 
-                    if(i>len(inputs)-1):
-                        break;
+            try:
+                readable,writeable,exceptional = select.select(inputs,outputs,inputs)
+                if len(readable)>0:
+                    for i in range(0,len(inputs)):
+                        #good 
+                        if(i>len(inputs)-1):
+                            break;
 
-                    if inputs[i] in readable:
-                        #new connect
-                        if inputs[i]==httpsock:
-                            client,addr=httpsock.accept()
-                            client.setblocking(1)
-                            client.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 0)  
-                            inputs.append(client)
-                            continue
-                        if inputs[i]!=httpsock:
-                            try:
-                                data = inputs[i].recv(9216)
-                                heads=self.httphead(data)
-                                if  self.proxylist.has_key(inputs[i]):
-                                    self.proxylist[inputs[i]].send(data)
-                                    continue
-                                if heads.has_key("Host"):
-                                    if self.HOSTS.has_key(heads['Host']):
-                                        dict = {} 
-                                        dict["Type"]="ReqProxy"
-                                        dict["Payload"]={}
-                                        back=self.sendpack(self.HOSTS[heads['Host']]['sock'],dict)
-                                        if self.reglist.has_key(self.HOSTS[heads['Host']]['clientid']):
-                                            regitem=self.reglist[self.HOSTS[heads['Host']]['clientid']]
+                        if inputs[i] in readable:
+                            #new connect
+                            if inputs[i]==httpsock:
+                                client,addr=httpsock.accept()
+                                client.setblocking(1)
+                                client.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 0)  
+                                inputs.append(client)
+                                continue
+                            if inputs[i]!=httpsock:
+                                try:
+                                    data = inputs[i].recv(9216)
+                                    heads=self.httphead(data)
+                                    if  self.proxylist.has_key(inputs[i]):
+                                        self.proxylist[inputs[i]].send(data)
+                                        continue
+                                    if heads.has_key("Host"):
+                                        if self.HOSTS.has_key(heads['Host']):
+                                            dict = {} 
+                                            dict["Type"]="ReqProxy"
+                                            dict["Payload"]={}
+                                            back=self.sendpack(self.HOSTS[heads['Host']]['sock'],dict)
+                                            if self.reglist.has_key(self.HOSTS[heads['Host']]['clientid']):
+                                                regitem=self.reglist[self.HOSTS[heads['Host']]['clientid']]
+                                            else:
+                                                regitem=[]
+                                            reginfo={}
+                                            reginfo['Protocol']=Protocol
+                                            reginfo['Host']=heads['Host']
+                                            reginfo['rsock']= inputs[i]
+                                            reginfo['buf']= data
+                                            regitem.append(reginfo)
+                                            self.reglist[self.HOSTS[heads['Host']]['clientid']]=regitem
                                         else:
-                                            regitem=[]
-                                        reginfo={}
-                                        reginfo['Protocol']=Protocol
-                                        reginfo['Host']=heads['Host']
-                                        reginfo['rsock']= inputs[i]
-                                        reginfo['buf']= data
-                                        regitem.append(reginfo)
-                                        self.reglist[self.HOSTS[heads['Host']]['clientid']]=regitem
+                                            self.show404(inputs[i])
+                                            inputs.remove(inputs[i])
                                     else:
                                         self.show404(inputs[i])
                                         inputs.remove(inputs[i])
-                                else:
-                                    self.show404(inputs[i])
+
+
+                                except Exception,e:
+                                    print("error\r\n");
+                                    print e
+                                    if inputs[i]!=httpsock and e.errno!=9:
+                                        inputs[i].shutdown(socket.SHUT_RDWR)
+                                        inputs[i].close()
                                     inputs.remove(inputs[i])
-
-
-                            except Exception,e:
-                                print("error\r\n");
-                                print e
-                                if inputs[i]!=httpsock and e.errno!=9:
-                                    inputs[i].shutdown(socket.SHUT_RDWR)
-                                    inputs[i].close()
-                                inputs.remove(inputs[i])
-            #except socket.error,e:
-            #    print("error1\r\n");
-            #    print e
-                #break
+            except socket.error,e:
+                print("error1\r\n");
+                print e
+                break
 
             
     def https_thread(self):
