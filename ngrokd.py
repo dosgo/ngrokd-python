@@ -189,7 +189,8 @@ class NgrokdPython(object):
 
                             except Exception,e:
                                 print("error\r\n");
-                                if e.errno!=9:
+                                print e
+                                if inputs[i]!=httpsock and e.errno!=9:
                                     inputs[i].shutdown(socket.SHUT_RDWR)
                                     inputs[i].close()
                                 inputs.remove(inputs[i])
