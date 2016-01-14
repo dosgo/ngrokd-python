@@ -125,7 +125,7 @@ class NgrokdPython(object):
                                     regitem.append(reginfo)
                                     self.reglist[ClientId]=regitem
                                 except Exception,e:
-                                    print("error\r\n");
+                                    print("error9\r\n");
                                     print e
                                     if e.errno!=9:
                                         self.tcpsocks[i].shutdown(socket.SHUT_RDWR)
@@ -150,8 +150,12 @@ class NgrokdPython(object):
                             #new connect
                             if inputs[i]==httpsock:
                                 client,addr=httpsock.accept()
+                                try:
                                 client.setblocking(1)
                                 client.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 0)  
+                                except Exception,e:
+                                    print("error5")
+                                    print e
                                 inputs.append(client)
                                 continue
                             if inputs[i]!=httpsock:
