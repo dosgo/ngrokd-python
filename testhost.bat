@@ -1,1 +1,1 @@
-ngrokc -SER[Shost:tunnel.16116.org,Sport:4443] -AddTun[Type:http,Lhost:127.0.0.1,Lport:80,Sdname:test1]
+ngrokc -SER[Shost:yuancheng.kos.org.cn,Sport:4443] -AddTun[Type:http,Lhost:127.0.0.1,Lport:80,Sdname:test1]
