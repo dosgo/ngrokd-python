@@ -390,11 +390,11 @@ class NgrokdPython(object):
 
 
                     except socket.error,e:
+                        print "error10"
                         print e
                         if  hostsock.has_key(inputs[i]):
                             if self.HOSTS.has_key(hostsock[inputs[i]]):
                                 self.HOSTS.pop(hostsock[inputs[i]])
-                                continue
                         try:
                             inputs[i].shutdown(socket.SHUT_RDWR)
                             inputs.remove(inputs[i])
