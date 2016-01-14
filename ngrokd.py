@@ -159,9 +159,10 @@ class NgrokdPython(object):
                                 print e
                             inputs.append(client)
                             continue
-                        if inputs[i]!=httpsock:
+                        else:
                             try:
                                 data = inputs[i].recv(9216)
+                                print (data)
                                 heads=self.httphead(data)
                                 if  self.proxylist.has_key(inputs[i]):
                                     self.proxylist[inputs[i]].send(data)
