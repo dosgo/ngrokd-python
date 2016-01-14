@@ -400,6 +400,7 @@ class NgrokdPython(object):
                             inputs.remove(inputs[i])
                         except socket.error:
                             print "ddd"
+                        inputs.remove(inputs[i])
                         
 
 
