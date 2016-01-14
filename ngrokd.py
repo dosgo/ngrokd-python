@@ -13,11 +13,14 @@ import time
 
 
 #config
-Ver="0.2-(2016-01-12)"
+Ver="0.3-(2016-01-14)"
 SERVERDOMAIN = "16116.org"  
 SERVERHTTP=90
 SERVERHTTPS=444
 SERVERPORT=4443
+
+keyfile='domain.key'
+certfile='server.crt'
 
 
 
@@ -197,7 +200,7 @@ class NgrokdPython(object):
 
             
     def https_thread(self):
-        httpsock = ssl.wrap_socket(socket.socket(),'domain.key', 'server.crt',  True)
+        httpsock = ssl.wrap_socket(socket.socket(),keyfile,certfile,  True)
         httpsock.bind( ('0.0.0.0', SERVERHTTPS) )
         httpsock.listen(500)
         httpsock.setblocking(1)
@@ -213,7 +216,7 @@ class NgrokdPython(object):
         self.http_server(httpsock,'http')
 
     def server_thread(self):
-        sock = ssl.wrap_socket(socket.socket(),keyfile="domain.key",certfile="server.crt",server_side=True,cert_reqs=ssl.CERT_NONE)
+        sock = ssl.wrap_socket(socket.socket(),keyfile,certfile,server_side=True,cert_reqs=ssl.CERT_NONE)
         sock.bind( ('0.0.0.0', SERVERPORT) )
         sock.listen(100)
         sock.setblocking(1)
