@@ -223,7 +223,7 @@ class NgrokdPython(object):
 
     def server_thread(self):
         sock = ssl.wrap_socket(socket.socket(),keyfile,certfile,server_side=True,cert_reqs=ssl.CERT_NONE)
-        httpsock.setsockopt( socket.SOL_SOCKET, socket.SO_REUSEADDR, 1 )
+        sock.setsockopt( socket.SOL_SOCKET, socket.SO_REUSEADDR, 1 )
         sock.bind( ('0.0.0.0', SERVERPORT) )
         sock.listen(100)
         sock.setblocking(1)
