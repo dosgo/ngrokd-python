@@ -9,6 +9,7 @@ import os
 import struct
 import random
 import select
+import time
 
 
 #config
@@ -68,6 +69,8 @@ class NgrokdPython(object):
         outputs=[]
         while True:
             #try:
+            if len(self.tcpsocks)<1:
+                time.sleep(0.1)
             if len(self.tcpsocks)>0:
                 readable,writeable,exceptional = select.select(self.tcpsocks,outputs,[])
                 if len(readable)>0:
