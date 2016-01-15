@@ -256,7 +256,9 @@ class NgrokdPython(object):
                             if inputs[i] in readable:
                                 #new connect
                                 if inputs[i]==sock:
+                                    sock.setblocking(0)
                                     client,addr=sock.accept()
+                                    sock.setblocking(1)
                                     client.setblocking(1)
                                     inputs.append(client)
                                     continue
