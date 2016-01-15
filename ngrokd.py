@@ -151,7 +151,8 @@ class NgrokdPython(object):
                         if inputs[i]==httpsock:
                             client,addr=httpsock.accept()
                             try:
-                                self.modify_buff_size(client)
+                                #self.modify_buff_size(client)
+                                client.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 0)  
                                 client.setblocking(1) 
                             except Exception,e:
                                 print("error5")
