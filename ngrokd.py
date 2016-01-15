@@ -152,8 +152,7 @@ class NgrokdPython(object):
                             client,addr=httpsock.accept()
                             print("http new sock\r\n")
                             try:
-                                
-                                client.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 1) 
+                                self.modify_buff_size(client)
                                 client.setblocking(1) 
                             except Exception,e:
                                 print("error5")
@@ -471,8 +470,8 @@ class NgrokdPython(object):
         return sendlen
     def modify_buff_size(self,sock):
         sock.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 1)
-        sock.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 8192)
-        sock.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 8192)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 9216)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 9216)
 
 
 
