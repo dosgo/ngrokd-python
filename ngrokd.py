@@ -237,7 +237,7 @@ class NgrokdPython(object):
         sock.bind( ('0.0.0.0', SERVERPORT) )
         sock.listen(100)
         sock.setblocking(1)
-        sock.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 1)  
+        #sock.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 1)  
         inputs=[sock]
         outputs=[]
         tosocklist={}
@@ -350,7 +350,7 @@ class NgrokdPython(object):
                                                         tcpsock.listen(500)
                                                         self.tcpsocks.append(tcpsock);
                                                         sockinfo=tcpsock.getsockname();
-                                                        tcpsock.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 1)  
+                                                        #tcpsock.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 1)  
                                                         tcpsock.setblocking(1)
                                                         dict["Payload"]["Url"]="tcp://"+SERVERDOMAIN+':'+str(sockinfo[1])
                                                     except Exception,e:
