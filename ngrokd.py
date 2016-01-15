@@ -13,7 +13,7 @@ import time
 
 
 #config
-Ver="0.3-(2016-01-14)"
+Ver="0.5-(2016-01-16)"
 SERVERDOMAIN = "yuancheng.kos.org.cn"  
 SERVERHTTP=90
 SERVERHTTPS=444
@@ -150,7 +150,6 @@ class NgrokdPython(object):
                         #new connect
                         if inputs[i]==httpsock:
                             client,addr=httpsock.accept()
-                            print("http new sock\r\n")
                             try:
                                 self.modify_buff_size(client)
                                 client.setblocking(1) 
@@ -162,26 +161,20 @@ class NgrokdPython(object):
                         else:
                             try:
                                 data = inputs[i].recv(9216)
-                                print (data)
                                 heads=self.httphead(data)
                                 if  self.proxylist.has_key(inputs[i]):
-                                    print("ddd1\r\n");
                                     self.send(self.proxylist[inputs[i]],data);
                                     continue
                                 if heads.has_key("Host"):
-                                    print("ddd\r\n");
                                     if self.HOSTS.has_key(heads['Host']):
-                                        print("ddd10\r\n");
                                         dict = {} 
                                         dict["Type"]="ReqProxy"
                                         dict["Payload"]={}
-                                        back=self.sendpack(self.HOSTS[heads['Host']]['sock'],dict)
-                                        print "back",back,"\r\n"
+                                        self.sendpack(self.HOSTS[heads['Host']]['sock'],dict)
                                         if self.reglist.has_key(self.HOSTS[heads['Host']]['clientid']):
                                             regitem=self.reglist[self.HOSTS[heads['Host']]['clientid']]
                                         else:
                                             regitem=[]
-                                        print("ddd11\r\n");
                                         reginfo={}
                                         reginfo['Protocol']=Protocol
                                         reginfo['Host']=heads['Host']
@@ -189,7 +182,6 @@ class NgrokdPython(object):
                                         reginfo['buf']= data
                                         regitem.append(reginfo)
                                         self.reglist[self.HOSTS[heads['Host']]['clientid']]=regitem
-                                        print("ddd12\r\n");
                                     else:
                                         self.show404(inputs[i])
                                         inputs.remove(inputs[i])
@@ -302,7 +294,6 @@ class NgrokdPython(object):
                                             if js["Type"]=="Ping":
                                                 dict = {} 
                                                 dict["Type"]="Pong";
-                                                print("pong \r\n")
                                                 self.sendpack(inputs[i],dict)
                                             if js["Type"]=="ReqTunnel":
                                                 if js["Payload"]["Protocol"]=="http" or js["Payload"]["Protocol"]=="https":
@@ -380,13 +371,9 @@ class NgrokdPython(object):
                                                             dict["Payload"]={};
                                                             dict["Payload"]['Url']=linkinfo['Protocol']+'://'+linkinfo['Host']
                                                             dict['Payload']['ClientAddr']=str(sockinfo[0])+':'+str(sockinfo[1]);#ip +port
-                                                            print("RegProxy")
                                                             self.sendpack(inputs[i],dict)
-                                                            print("RegProxy1")
                                                             self.send(inputs[i],linkinfo['buf'])
-                                                            print("RegProxy3")
                                                             self.proxylist[tosock]=inputs[i]
-                                                            print("RegProxy4")
 
                                                         if linkinfo['Protocol']=='tcp':
                                                             tosock=linkinfo['rsock']
