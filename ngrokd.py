@@ -256,9 +256,8 @@ class NgrokdPython(object):
                             if inputs[i] in readable:
                                 #new connect
                                 if inputs[i]==sock:
-                                    sock.setblocking(0)
                                     client,addr=sock.accept()
-                                    sock.setblocking(1)
+                                    self.modify_buff_size(client)
                                     client.setblocking(1)
                                     inputs.append(client)
                                     continue
@@ -470,6 +469,10 @@ class NgrokdPython(object):
         sendlen=client.send(len1+len2+jsonstr);
         client.setblocking(1)
         return sendlen
+    def modify_buff_size(self,sock):
+        sock.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 1)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 8192)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 8192)
 
 
 
